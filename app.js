@@ -401,10 +401,13 @@ function openModal() {
     }, 100); 
 }
 
+// UPDATED: Modal will now close on clicking the overlay, the close button, or programmatically
 function closeModal(e) { 
     const modal = document.getElementById('addModal');
-    if(!modal) return;
-    if(!e || e.target === modal) modal.classList.remove('open'); 
+    if (!modal) return;
+    if (!e || e.target === modal || e.target.closest('.close-modal-btn')) {
+        modal.classList.remove('open'); 
+    }
 }
 
 function setTab(t) {
@@ -454,9 +457,10 @@ function resetData() {
     } 
 }
 
+// UPDATED: Now redirects properly to index.html
 function logoutUser() {
     if(confirm("Are you sure you want to logout?")) {
-        window.location.href = "dashboard.html";
+        window.location.href = "index.html";
     }
 }
 
@@ -466,7 +470,6 @@ function logoutUser() {
 function exportJSON() {
     if(db.length === 0) { alert("No data to backup."); return; }
     
-    // Include goal data in backup if it exists
     let goalData = null;
     if (isStorageEnabled()) goalData = localStorage.getItem('ow_goal');
     
@@ -491,8 +494,6 @@ function importJSON(event) {
     reader.onload = function(e) {
         try {
             const importedData = JSON.parse(e.target.result);
-            
-            // Check if it's the new format (with goal) or the old format (just an array)
             let importedDb = Array.isArray(importedData) ? importedData : importedData.transactions;
             let importedGoal = Array.isArray(importedData) ? null : importedData.goal;
             
@@ -671,26 +672,4 @@ function generatePremiumPDF(transactions, isCustomRange, startDate, endDate, fil
     }
     
     doc.save(`${filename}.pdf`);
-}
-
-function closeModal(e) { 
-    const modal = document.getElementById('addModal');
-    if (!modal) return;
-    
-    // The modal will close if:
-    // 1. Called programmatically (no 'e' provided)
-    // 2. The user clicks the dark background overlay
-    // 3. The user clicks the new close button (or the icon inside it)
-    if (!e || e.target === modal || e.target.closest('.close-modal-btn')) {
-        modal.classList.remove('open'); 
-    }
-}
-
-// LOGOUT FUNCTIONALITY (Redirects to index.html)
-function logoutUser() {
-    if(confirm("Are you sure you want to logout?")) {
-        // You can add logic here to clear session storage if you are using it for auth:
-        // sessionStorage.clear();
-        window.location.href = "index.html";
-    }
 }
