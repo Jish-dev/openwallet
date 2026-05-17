@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#030712">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>OpenWallet</title>
+    <link rel="icon" href="logo2.png">
+
+    <!-- External Fonts and Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    
+    <!-- Local CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header" id="mainHeader">
+            <div class="user-info">
+                <div class="avatar">
+                    <img src="logo.png" width="45px" alt="logo">
+                </div>
+                <div class="greeting">
+                    <p id="dateDisplay">Today</p>
+                    <h1 id="userDisplay">Hi, User</h1>
+                </div>
+            </div>
+            <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">
+                <i class="bi bi-moon-stars"></i>
+            </button>
+        </header>
+
+        <!-- View: Home -->
+        <div id="view-home" class="view active">
+            <div class="glass-card">
+                <div class="nw-label">Total Balance <i class="bi bi-wifi" style="transform: rotate(90deg);"></i></div>
+                <div class="nw-val" id="disp-net">₹0</div>
+                <div class="card-footer">
+                    <div class="cf-item inc">
+                        <div>Income</div>
+                        <div id="disp-inc">₹0</div>
+                    </div>
+                    <div class="cf-item exp">
+                        <div>Spent</div>
+                        <div id="disp-exp">₹0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pill-scroll">
+                <div class="stat-pill c-sav">
+                    <div class="sp-head"><i class="bi bi-piggy-bank-fill"></i> Savings</div>
+                    <div class="sp-val" id="disp-sav">₹0</div>
+                </div>
+                <div class="stat-pill c-cash">
+                    <div class="sp-head"><i class="bi bi-cash-stack"></i> Cash</div>
+                    <div class="sp-val" id="disp-cash">₹0</div>
+                </div>
+                <div class="stat-pill c-bank">
+                    <div class="sp-head"><i class="bi bi-bank2"></i> Bank</div>
+                    <div class="sp-val" id="disp-bank">₹0</div>
+                </div>
+            </div>
+
+            <!-- Dynamic Savings Goal -->
+            <div class="section-head" style="margin-top: 10px;">
+                <div class="sec-title">Current Goal</div>
+                <a class="sec-link" onclick="setGoal()" id="goalActionBtn">Set Goal</a>
+            </div>
+            <div class="glass-card goal-card" style="padding: 20px;" id="goalCardContent">
+                <!-- Goal UI injected via JS -->
+            </div>
+
+            <div class="section-head">
+                <div class="sec-title">Recent Activity</div>
+                <a class="sec-link" onclick="switchView('history')">See All</a>
+            </div>
+            <div class="tx-list" id="recentList"></div>
+        </div>
+
+        <!-- View: Analysis -->
+        <div id="view-analysis" class="view">
+            <div class="section-head"><div class="sec-title">Analytics</div></div>
+            <div class="chart-container">
+                 <canvas id="mainChart"></canvas>
+            </div>
+            
+            <!-- New Feature: AI Financial Insights -->
+            <div class="section-head" style="margin-top:40px;"><div class="sec-title"><i class="bi bi-robot" style="color: var(--primary); margin-right: 8px;"></i> Smart Insights</div></div>
+            <div class="glass-card insight-card" style="padding: 20px; border-left: 4px solid var(--primary);">
+                <p id="aiInsightText" style="margin: 0; font-size: 0.95rem; line-height: 1.5; color: var(--text-main);">Analyzing your spending patterns...</p>
+            </div>
+
+            <div class="section-head" style="margin-top:40px;"><div class="sec-title">Top Categories</div></div>
+            <div class="glass-card" style="padding: 24px;">
+                <div id="catBars"></div>
+            </div>
+        </div>
+
+        <!-- View: History -->
+        <div id="view-history" class="view">
+            <div class="section-head"><div class="sec-title">Transactions</div></div>
+            <input type="text" class="inp-field" id="searchInp" placeholder="Search entries..." onkeyup="render()" style="margin-bottom: 20px; background: var(--bg-surface); backdrop-filter: var(--glass-blur);">
+            <div class="tx-list" id="fullList" style="padding-bottom: 40px;"></div>
+        </div>
+
+        <!-- View: Profile / Settings -->
+        <div id="view-profile" class="view">
+            <div class="section-head"><div class="sec-title">Settings</div></div>
+            <div class="profile-card">
+                <i class="bi bi-person-bounding-box"></i>
+                <h3 id="profileName" onclick="editUserName()" title="Click to edit name">User</h3>
+                <p style="color: var(--text-sec); margin: 0; font-weight: 500;">Premium Dashboard</p>
+            </div>
+            <p style="font-weight: 700; color: var(--text-sec); margin-bottom: 12px; font-size: 0.9rem;">DATA MANAGEMENT (.json)</p>
+            <div class="action-grid">
+                <div class="btn-action" onclick="exportJSON()"><i class="bi bi-cloud-arrow-down" style="color: var(--primary);"></i> Backup Data</div>
+                <div class="btn-action" onclick="document.getElementById('importFile').click()"><i class="bi bi-cloud-arrow-up" style="color: var(--success);"></i> Restore Data</div>
+                <input type="file" id="importFile" class="hidden-file-input" accept=".json" onchange="importJSON(event)">
+            </div>
+            <p style="font-weight: 700; color: var(--text-sec); margin-bottom: 12px; font-size: 0.9rem;">EXPORT REPORTS</p>
+            <div class="action-grid">
+                <div class="btn-action" onclick="exportData('excel', false)"><i class="bi bi-file-earmark-excel" style="color: #10b981;"></i> Excel</div>
+                <div class="btn-action" onclick="exportData('pdf', false)"><i class="bi bi-file-earmark-pdf" style="color: #f43f5e;"></i> PDF</div>
+            </div>
+            <p style="font-weight: 700; color: var(--text-sec); margin-bottom: 12px; font-size: 0.9rem;">CUSTOM RANGE EXPORT</p>
+            <div class="date-inputs">
+                <input type="date" id="startDate" class="inp-mini">
+                <input type="date" id="endDate" class="inp-mini">
+            </div>
+            <div class="action-grid">
+                <div class="btn-action" onclick="exportData('excel', true)" style="padding: 12px;"><i class="bi bi-filter"></i> Excel</div>
+                <div class="btn-action" onclick="exportData('pdf', true)" style="padding: 12px;"><i class="bi bi-filter"></i> PDF</div>
+            </div>
+            
+            <div class="action-grid" style="margin-top: 40px;">
+                <div class="btn-action" onclick="logoutUser()" style="color: var(--warning); background: rgba(245, 158, 11, 0.05); border-color: rgba(245, 158, 11, 0.2);">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </div>
+                <div class="btn-action btn-danger" onclick="resetData()">
+                    <i class="bi bi-trash3"></i> Wipe All Data
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="nav-wrapper" id="mainNav">
+        <nav class="nav-bar">
+            <button class="nav-btn active" data-target="home" onclick="switchView('home')"><i class="bi bi-house-door-fill"></i></button>
+            <button class="nav-btn" data-target="analysis" onclick="switchView('analysis')"><i class="bi bi-pie-chart-fill"></i></button>
+            <button class="fab" onclick="openModal()"><i class="bi bi-plus-lg"></i></button>
+            <button class="nav-btn" data-target="history" onclick="switchView('history')"><i class="bi bi-clock-history"></i></button>
+            <button class="nav-btn" data-target="profile" onclick="switchView('profile')"><i class="bi bi-gear-fill"></i></button>
+        </nav>
+    </div>
+
+    <!-- Bottom Sheet Modal for Add Transaction -->
+    <div class="modal-overlay" id="addModal" onclick="closeModal(event)">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="modal-drag"></div>
+            
+            <!-- NEW: Close Button -->
+            <button class="close-modal-btn" type="button" aria-label="Close" onclick="closeModal(event)">
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+            <form id="txForm">
+                <div class="type-selector">
+                    <div class="ts-btn active" data-val="expense" onclick="setTab('expense')">Expense</div>
+                    <div class="ts-btn" data-val="income" onclick="setTab('income')">Income</div>
+                    <div class="ts-btn" data-val="saving" onclick="setTab('saving')">Saving</div>
+                    <div class="ts-btn" data-val="transfer" onclick="setTab('transfer')">Transfer</div>
+                </div>
+                <input type="hidden" id="txType" value="expense">
+                <input type="number" id="txAmt" class="huge-input" placeholder="0" required>
+                <div class="form-grid">
+                    <input type="text" id="txDesc" class="inp-field full-width" placeholder="What was this for?" required>
+                    <input type="date" id="txDate" class="inp-field full-width" required>
+                    <select id="txCat" class="inp-field">
+                        <option>General</option><option>Food</option><option>Transport</option>
+                        <option>Shopping</option><option>Bills</option><option>Entertainment</option>
+                        <option>Health</option>
+                    </select>
+                    <select id="txMethod" class="inp-field">
+                        <option value="cash">Cash</option><option value="bank">Bank</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-submit">Add Transaction</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Local JS -->
+    <script src="app.js"></script>
+</body>
+</html>

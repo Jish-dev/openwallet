@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OpenWallet | Intelligent Finance</title>
+    <link rel="icon" href="logo.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --bg-body: #020617;
+            --bg-card: rgba(15, 23, 42, 0.6);
+            --primary: #38bdf8;
+            --primary-grad: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+            --accent: #c084fc;
+            --success: #22c55e;
+            --error: #ef4444;
+            --text-main: #f8fafc;
+            --text-sec: #94a3b8;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --radius-xl: 32px;
+            --radius-l: 24px;
+            --radius-m: 16px;
+            --blur: blur(20px);
+        }
+
+        /* --- CSS RESET & NORMALIZE --- */
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Force form elements to inherit fonts and colors */
+        input, button, select, textarea {
+            font-family: inherit;
+            color: inherit;
+            margin: 0;
+        }
+
+        /* --- BACKGROUND ELEMENTS --- */
+        .orb {
+            position: fixed; border-radius: 50%; filter: blur(100px); z-index: -1; opacity: 0.2;
+        }
+        .orb-1 { width: 400px; height: 400px; background: var(--primary); top: -100px; left: -100px; }
+        .orb-2 { width: 500px; height: 500px; background: var(--accent); bottom: -150px; right: -100px; }
+
+        /* --- LAYOUT CONTAINERS --- */
+        .app-container { width: 100%; max-width: 480px; margin: 0 auto; padding: 20px; flex: 1; display: flex; flex-direction: column; }
+        .view { display: none; animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        .view.active { display: flex; flex-direction: column; }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- SHARED COMPONENTS --- */
+        .glass-card {
+            background: var(--bg-card); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+            border: 1px solid var(--glass-border); border-radius: var(--radius-l);
+            padding: 30px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-primary {
+            background: var(--primary-grad); color: white; border: none; padding: 18px;
+            border-radius: var(--radius-m); font-size: 1.1rem; font-weight: 700; cursor: pointer;
+            box-shadow: 0 10px 20px -5px rgba(56, 189, 248, 0.4); transition: 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-primary:active { transform: scale(0.97); }
+
+        .input-group { margin-bottom: 20px; }
+        .input-label { font-size: 0.8rem; font-weight: 600; color: var(--text-sec); margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: 1px; }
+        .input-field {
+            width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border);
+            padding: 16px; border-radius: var(--radius-m); color: white; font-size: 1.1rem;
+        }
+        .input-field:focus { border-color: var(--primary); background: rgba(0,0,0,0.4); outline: none; }
+        
+        select.input-field {
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem top 50%;
+            background-size: 0.65rem auto;
+            padding-right: 2.5rem;
+        }
+
+        /* --- AUTH SPECIFIC --- */
+        .pin-grid { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
+        .pin-input { width: 100%; text-align: center; font-size: 2rem; letter-spacing: 15px; font-weight: 900; }
+
+        /* --- DASHBOARD SPECIFIC --- */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .user-badge { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 45px; height: 45px; border-radius: 50%; background: var(--primary-grad); display: flex; align-items: center; justify-content: center; font-weight: 800; }
+
+        .balance-card {
+            background: var(--primary-grad); padding: 30px; border-radius: var(--radius-xl);
+            margin-bottom: 20px; position: relative; overflow: hidden;
+        }
+        .balance-card::after { content: ''; position: absolute; top: -50%; right: -20%; width: 200px; height: 200px; background: white; opacity: 0.1; border-radius: 50%; }
+
+        .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .stat-box { background: var(--glass); border: 1px solid var(--glass-border); padding: 20px; border-radius: var(--radius-l); }
+        .stat-val { font-size: 1.3rem; font-weight: 700; display: block; margin-top: 5px; }
+
+        .tx-list { display: flex; flex-direction: column; gap: 12px; }
+        .tx-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px; background: var(--glass); border-radius: var(--radius-m); border: 1px solid transparent;
+            transition: 0.3s;
+        }
+        .tx-item:hover { border-color: var(--glass-border); background: rgba(255,255,255,0.05); }
+        .tx-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+
+        /* --- SUCCESS OVERLAY --- */
+        #success-overlay {
+            position: fixed; inset: 0; background: var(--bg-body); z-index: 1000;
+            display: none; align-items: center; justify-content: center; flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <!-- SUCCESS ANIMATION -->
+    <div id="success-overlay">
+        <i class="bi bi-shield-check" style="font-size: 5rem; color: var(--primary); margin-bottom: 20px;"></i>
+        <h2 id="overlay-msg" style="letter-spacing: 4px; text-transform: uppercase;">Authenticated</h2>
+    </div>
+
+    <div class="app-container">
+
+        <!-- VIEW: INITIAL SETUP (SIGNUP) -->
+        <div id="view-setup" class="view">
+            <div style="text-align: center; margin-bottom: 40px; margin-top: 20px;">
+                <img src="logo.png" width="100px" alt="">
+                <h1 style="margin: 10px 0 5px;">Welcome to OpenWallet</h1>
+                <p style="color: var(--text-sec);">The future of personal finance is local.</p>
+            </div>
+            <div class="glass-card">
+                <form id="form-setup">
+                    <div class="input-group">
+                        <label class="input-label">Display Name</label>
+                        <input type="text" id="setup-name" class="input-field" placeholder="What should we call you?" required>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Secure 4-Digit PIN</label>
+                        <input type="password" id="setup-pin" class="input-field pin-input" maxlength="4" inputmode="numeric" placeholder="••••" required>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Security Question (For Recovery)</label>
+                        <select id="setup-q" class="input-field" style="appearance: none;">
+                            <option value="pet">Your first pet's name?</option>
+                            <option value="city">City where you were born?</option>
+                            <option value="school">Name of your first school?</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="setup-a" class="input-field" placeholder="Answer" required>
+                    </div>
+
+                    <!-- NEW: Fingerprint Add Option -->
+                    <div class="input-group" style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                        <input type="checkbox" id="setup-bio" style="width: 20px; height: 20px; accent-color: var(--primary); cursor: pointer;">
+                        <label for="setup-bio" style="font-size: 0.95rem; color: var(--text-sec); cursor: pointer;">Enable Fingerprint Login</label>
+                    </div>
+
+                    <button type="submit" class="btn-primary" style="width: 100%;">Create Secure Vault</button>
+                    
+                    <!-- NEW: Already Registered Link -->
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button type="button" onclick="goToLogin()" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.95rem; font-weight: 600;">Already registered? Sign in</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- VIEW: LOGIN -->
+        <div id="view-login" class="view">
+            <div style="text-align: center; margin-bottom: 40px; margin-top: 40px;">
+                <div class="avatar" id="login-avatar" style="margin: 0 auto 15px; width: 80px; height: 80px; font-size: 2rem;">J</div>
+                <h2 id="login-greeting">Welcome back, Jishnu</h2>
+                <p style="color: var(--text-sec);">Verify identity to unlock vault</p>
+            </div>
+            <div class="glass-card">
+                <form id="form-login">
+                    <input type="password" id="login-pin" class="input-field pin-input" maxlength="4" inputmode="numeric" placeholder="••••" required autofocus>
+                    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 20px;">Unlock</button>
+                    
+                    <!-- Biometric Button (Shown if enabled during setup) -->
+                    <button type="button" id="btn-bio" class="btn-primary" style="width: 100%; margin-top: 15px; background: var(--glass); border: 1px solid var(--glass-border); box-shadow: none; display: none;">
+                        <i class="bi bi-fingerprint"></i> Biometric Access
+                    </button>
+                </form>
+                <div id="login-err" style="color: var(--error); text-align: center; margin-top: 20px; font-size: 0.9rem; font-weight: 600;"></div>
+                <div style="text-align: center; margin-top: 30px; display: flex; flex-direction: column; gap: 15px;">
+                    <button onclick="showRecovery()" style="background: none; border: none; color: var(--text-sec); cursor: pointer; font-size: 0.85rem;">Forgot PIN? Recover Profile</button>
+                    <button onclick="goToSetup()" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.9rem; font-weight: 600;">Create new Vault</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: RECOVERY -->
+        <div id="view-recover" class="view">
+            <div class="header">
+                <button onclick="init()" style="background:none; border:none; color:white; font-size:1.5rem; cursor: pointer;"><i class="bi bi-arrow-left"></i></button>
+                <h3>Recovery Mode</h3>
+                <div style="width:24px;"></div>
+            </div>
+            <div class="glass-card">
+                <p id="recover-q-text" style="margin-bottom: 20px; font-weight: 600;"></p>
+                <input type="text" id="recover-a" class="input-field" placeholder="Your Answer">
+                <button onclick="handleRecovery()" class="btn-primary" style="width: 100%; margin-top: 20px;">Verify & Reset</button>
+            </div>
+        </div>
+
+        <!-- VIEW: DASHBOARD (Ideally moved to dashboard.html) -->
+        <div id="view-dash" class="view">
+            <div class="header">
+                <div class="user-badge">
+                    <div class="avatar" id="dash-avatar">J</div>
+                    <div>
+                        <span style="display: block; font-size: 0.8rem; color: var(--text-sec);">Good Evening,</span>
+                        <span id="dash-name" style="font-weight: 700;">Jishnu</span>
+                    </div>
+                </div>
+                <button onclick="logout()" style="background: var(--glass); border: 1px solid var(--glass-border); color: white; padding: 10px; border-radius: 12px; cursor: pointer;"><i class="bi bi-power"></i></button>
+            </div>
+
+            <div class="balance-card">
+                <span style="font-size: 0.9rem; opacity: 0.8;">Total Balance</span>
+                <h1 id="total-balance" style="font-size: 2.8rem; margin: 5px 0 0; font-weight: 900;">₹ 0.00</h1>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-box">
+                    <span style="color: var(--success); font-size: 0.8rem; font-weight: 700;"><i class="bi bi-arrow-down-left"></i> INCOME</span>
+                    <span id="stat-income" class="stat-val">₹ 0</span>
+                </div>
+                <div class="stat-box">
+                    <span style="color: var(--error); font-size: 0.8rem; font-weight: 700;"><i class="bi bi-arrow-up-right"></i> EXPENSES</span>
+                    <span id="stat-expense" class="stat-val">₹ 0</span>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0;">Recent Activity</h3>
+                <button onclick="addTransactionPrompt()" style="color: var(--primary); background: none; border: none; font-weight: 700; cursor: pointer;">+ Add New</button>
+            </div>
+
+            <div class="tx-list" id="tx-container">
+                <!-- Transactions will be injected here -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- CORE STATE ---
+        let USER = null;
+        let DB = { transactions: [] };
+
+        // --- CRYPTO UTILS ---
+        async function hash(str) {
+            const msgBuffer = new TextEncoder().encode(str);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // --- NAVIGATION ---
+        function switchView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        function goToLogin() {
+            const savedUser = localStorage.getItem('ow_user');
+            if (savedUser) {
+                USER = JSON.parse(savedUser);
+                document.getElementById('login-avatar').textContent = USER.name[0];
+                document.getElementById('login-greeting').textContent = `Welcome back, ${USER.name.split(' ')[0]}`;
+                
+                // Show biometric button if enabled during setup
+                if (USER.bioEnabled) {
+                    document.getElementById('btn-bio').style.display = 'block';
+                } else {
+                    document.getElementById('btn-bio').style.display = 'none';
+                }
+                switchView('view-login');
+            } else {
+                alert("No registered vault found on this device. Please create one.");
+            }
+        }
+
+        function goToSetup() {
+            switchView('view-setup');
+        }
+
+        // --- INITIALIZATION ---
+        async function init() {
+            const savedUser = localStorage.getItem('ow_user');
+            const savedDb = localStorage.getItem('ow_db');
+            
+            if (savedDb) DB = JSON.parse(savedDb);
+            
+            if (savedUser) {
+                goToLogin();
+            } else {
+                switchView('view-setup');
+            }
+        }
+
+        // --- ACTIONS ---
+        document.getElementById('form-setup').onsubmit = async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('setup-name').value;
+            const pin = await hash(document.getElementById('setup-pin').value);
+            const q = document.getElementById('setup-q').value;
+            const a = await hash(document.getElementById('setup-a').value.toLowerCase().trim());
+            
+            // Capture fingerprint preference
+            const bioEnabled = document.getElementById('setup-bio').checked;
+
+            USER = { name, pin, recovery: { q, a }, bioEnabled };
+            localStorage.setItem('ow_user', JSON.stringify(USER));
+            localStorage.setItem('ow_db', JSON.stringify(DB));
+            
+            showSuccess("Vault Created", () => {
+                // REDIRECT TO DASHBOARD.HTML
+                window.location.href = 'dashboard.html';
+                
+                // Note: If you want to keep the single-page experience instead, delete the window.location line and uncomment:
+                // loadDashboard(); 
+            });
+        };
+
+        document.getElementById('form-login').onsubmit = async (e) => {
+            e.preventDefault();
+            const pinInput = document.getElementById('login-pin').value;
+            const hashed = await hash(pinInput);
+            
+            if (hashed === USER.pin) {
+                showSuccess("Unlocked", () => {
+                    window.location.href = 'dashboard.html';
+                    // loadDashboard(); 
+                });
+            } else {
+                document.getElementById('login-err').textContent = "Access Denied: Incorrect PIN";
+                document.getElementById('login-pin').value = '';
+            }
+        };
+
+        // Simulated Biometric Login Action
+        document.getElementById('btn-bio').onclick = () => {
+            if (window.confirm("Biometric Authentication: Please scan your fingerprint.")) {
+                showSuccess("Unlocked", () => {
+                    window.location.href = 'dashboard.html';
+                    // loadDashboard();
+                });
+            } else {
+                document.getElementById('login-err').textContent = "Biometric scan failed or cancelled.";
+            }
+        };
+
+        function showRecovery() {
+            const qMap = { pet: "Your first pet's name?", city: "City where you were born?", school: "Name of your first school?" };
+            document.getElementById('recover-q-text').textContent = qMap[USER.recovery.q];
+            switchView('view-recover');
+        }
+
+        async function handleRecovery() {
+            const aInput = await hash(document.getElementById('recover-a').value.toLowerCase().trim());
+            if (aInput === USER.recovery.a) {
+                if (confirm("Identity verified. Reset profile PIN?")) {
+                    localStorage.clear();
+                    location.reload();
+                }
+            } else {
+                alert("Incorrect answer.");
+            }
+        }
+
+        function showSuccess(msg, callback) {
+            const overlay = document.getElementById('success-overlay');
+            document.getElementById('overlay-msg').textContent = msg;
+            overlay.style.display = 'flex';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                callback();
+            }, 1500);
+        }
+
+        // --- DASHBOARD FUNCTIONS (Move these to dashboard.html logic) ---
+        function loadDashboard() {
+            document.getElementById('dash-name').textContent = USER.name.split(' ')[0];
+            document.getElementById('dash-avatar').textContent = USER.name[0];
+            renderTransactions();
+            switchView('view-dash');
+        }
+
+        function renderTransactions() {
+            const container = document.getElementById('tx-container');
+            let income = 0, expense = 0;
+            
+            container.innerHTML = DB.transactions.length ? '' : '<p style="text-align:center; color:var(--text-sec);">No history found.</p>';
+            
+            DB.transactions.sort((a,b) => b.id - a.id).forEach(tx => {
+                const isInc = tx.type === 'income';
+                if (isInc) income += tx.amount; else expense += tx.amount;
+                
+                container.innerHTML += `
+                    <div class="tx-item">
+                        <div style="display:flex; align-items:center; gap:15px;">
+                            <div class="tx-icon" style="background:${isInc ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)'}; color:${isInc ? 'var(--success)' : 'var(--error)'}">
+                                <i class="bi bi-${isInc ? 'arrow-down-left' : 'arrow-up-right'}"></i>
+                            </div>
+                            <div>
+                                <span style="display:block; font-weight:600;">${tx.note}</span>
+                                <span style="font-size:0.75rem; color:var(--text-sec);">${new Date(tx.id).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                        <span style="font-weight:700; color:${isInc ? 'var(--success)' : 'white'}">${isInc ? '+' : '-'} ₹${tx.amount}</span>
+                    </div>
+                `;
+            });
+
+            document.getElementById('total-balance').textContent = `₹ ${(income - expense).toLocaleString()}`;
+            document.getElementById('stat-income').textContent = `₹ ${income.toLocaleString()}`;
+            document.getElementById('stat-expense').textContent = `₹ ${expense.toLocaleString()}`;
+        }
+
+        function addTransactionPrompt() {
+            const amount = parseFloat(prompt("Enter Amount:"));
+            if (isNaN(amount)) return;
+            const note = prompt("Enter Note:") || "General";
+            const type = confirm("Is this INCOME? (OK for Yes, Cancel for Expense)") ? 'income' : 'expense';
+
+            DB.transactions.push({ id: Date.now(), amount, note, type });
+            localStorage.setItem('ow_db', JSON.stringify(DB));
+            renderTransactions();
+        }
+
+        function logout() { if(confirm("Lock vault?")) location.reload(); }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

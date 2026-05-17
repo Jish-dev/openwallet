@@ -1,0 +1,16 @@
+{
+  "name": "OpenWallet",
+  "short_name": "OpenWallet",
+  "start_url": "./dashboard.html",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#0ea5e9",
+  "description": "Premium Daily Money Companion",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/214/214366.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
