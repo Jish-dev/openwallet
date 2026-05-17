@@ -33,9 +33,13 @@ if (!isStorageEnabled()) {
             db = JSON.parse(legacyDb);
             localStorage.setItem('ow_db', JSON.stringify(db));
         } else {
-            const stored = localStorage.getItem('ow_db');
-            if (stored) db = JSON.parse(stored);
-        }
+                    const stored = localStorage.getItem('ow_db');
+                    if (stored) {
+                        const parsed = JSON.parse(stored);
+                        // Make absolutely sure it's an array. If not, reset it to empty.
+                        db = Array.isArray(parsed) ? parsed : [];
+                    }
+                }
     } catch (error) {
         console.error("Storage Error, starting fresh:", error);
         db = [];
